@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Primitives & Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(activityData) {
+      return isSignedIn() && request.auth.uid == activityData.ownerId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidActivity(data) {
+      return data.name is string && data.name.size() >= 3 && data.name.size() <= 100
+          && data.date is timestamp
+          && data.endDate is timestamp
+          && data.division in ['Akademik', 'Asrama', 'Operasional']
+          && data.pic is string && data.pic.size() >= 2 && data.pic.size() <= 50
+          && data.type in ['internal', 'external']
+          && data.participantCount is number && data.participantCount >= 0
+          && data.participantOrigin is string && data.participantOrigin.size() <= 200
+          && data.categories is list && data.categories.size() >= 1 && data.categories.size() <= 15
+          && data.budget is number && data.budget >= 0
+          && data.ownerId == request.auth.uid
+          && data.keys().hasAll(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'ownerId', 'createdAt', 'updatedAt'])
+          && data.keys().size() == 13;
+    }
+
+    // 4. Activity Collection
+    match /activities/{activityId} {
+      // Public Read access for school calendar
+      allow get: if true;
+      allow list: if true; 
+
+      allow create: if isSignedIn() 
+          && isValidId(activityId)
+          && isValidActivity(incoming())
+          && incoming().createdAt == request.time
+          && incoming().updatedAt == request.time;
+
+      allow update: if isOwner(existing())
+          && isValidActivity(incoming())
+          && incoming().ownerId == existing().ownerId
+          && incoming().createdAt == existing().createdAt
+          && incoming().updatedAt == request.time
+          && (
+            // Partitioned Perms: Owners can change any non-immutable fields
+            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'updatedAt'])
+          );
+
+      allow delete: if isOwner(existing());
+    }
+  }
+}

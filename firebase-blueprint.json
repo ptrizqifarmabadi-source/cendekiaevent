@@ -1,0 +1,35 @@
+{
+  "entities": {
+    "Activity": {
+      "title": "Activity",
+      "description": "A school activity or event.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the activity" },
+        "date": { "type": "string", "format": "date-time", "description": "Start date of the activity" },
+        "endDate": { "type": "string", "format": "date-time", "description": "End date of the activity" },
+        "division": { "type": "string", "enum": ["Akademik", "Asrama", "Operasional"], "description": "Primary division responsible" },
+        "pic": { "type": "string", "description": "Person in charge" },
+        "type": { "type": "string", "enum": ["internal", "external"], "description": "Internal or external activity" },
+        "participantCount": { "type": "number", "description": "Approximate number of participants" },
+        "participantOrigin": { "type": "string", "description": "Where the participants come from" },
+        "categories": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Categories of the activity"
+        },
+        "budget": { "type": "number", "description": "Budget in Rupiah" },
+        "ownerId": { "type": "string", "description": "UID of the user who created this" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "date", "pic", "type", "categories", "ownerId"]
+    }
+  },
+  "firestore": {
+    "activities": {
+      "schema": "Activity",
+      "description": "Collection of school activities"
+    }
+  }
+}
