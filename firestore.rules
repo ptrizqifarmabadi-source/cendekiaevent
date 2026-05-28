@@ -38,7 +38,7 @@ service cloud.firestore {
           && data.participantOrigin is string && data.participantOrigin.size() <= 200
           && data.categories is list && data.categories.size() >= 1 && data.categories.size() <= 15
           && data.budget is number && data.budget >= 0
-          && data.ownerId == request.auth.uid
+          && (data.ownerId == "guest" || (request.auth != null && data.ownerId == request.auth.uid))
           && data.keys().hasAll(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'ownerId', 'createdAt', 'updatedAt'])
           && data.keys().size() == 13;
     }
@@ -49,13 +49,13 @@ service cloud.firestore {
       allow get: if true;
       allow list: if true; 
 
-      allow create: if isSignedIn() 
-          && isValidId(activityId)
+      allow create: if isValidId(activityId)
           && isValidActivity(incoming())
+          && (request.auth != null || incoming().ownerId == "guest")
           && incoming().createdAt == request.time
           && incoming().updatedAt == request.time;
 
-      allow update: if isOwner(existing())
+      allow update: if (existing().ownerId == "guest" || isOwner(existing()))
           && isValidActivity(incoming())
           && incoming().ownerId == existing().ownerId
           && incoming().createdAt == existing().createdAt
@@ -65,7 +65,7 @@ service cloud.firestore {
             incoming().diff(existing()).affectedKeys().hasOnly(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'updatedAt'])
           );
 
-      allow delete: if isOwner(existing());
+      allow delete: if existing().ownerId == "guest" || isOwner(existing());
     }
   }
 }

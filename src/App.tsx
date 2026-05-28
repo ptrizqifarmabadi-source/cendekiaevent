@@ -274,7 +274,7 @@ export default function App() {
             <div className="bg-vibrant-yellow border-[3px] border-vibrant-dark p-5 rounded-2xl shadow-[4px_4px_0_#2D3436] flex gap-3">
               <Info className="text-vibrant-dark shrink-0" size={20} />
               <p className="text-[11px] text-vibrant-dark leading-tight font-black uppercase italic">
-                Masuk untuk kelola jadwal sekolah.
+                Siapa saja bisa Isi Kegiatan tanpa login. Masuk jika ingin mengunci acara sebagai Admin.
               </p>
             </div>
           )}
@@ -391,18 +391,16 @@ export default function App() {
       </main>
 
       {/* Floating Action Button */}
-      {user && (
-        <button 
-          onClick={() => {
-            setSelectedActivity(null);
-            setIsModalOpen(true);
-          }}
-          className="fixed bottom-10 right-10 bg-vibrant-yellow text-vibrant-dark border-[4px] border-vibrant-dark p-5 rounded-[2.5rem] shadow-[10px_10px_0_#2D3436] hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[14px_14px_0_#2D3436] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all z-40 flex items-center gap-4"
-        >
-          <Plus size={32} className="stroke-[3px]" />
-          <span className="font-black text-lg uppercase italic pr-4">Tambah Kegiatan</span>
-        </button>
-      )}
+      <button 
+        onClick={() => {
+          setSelectedActivity(null);
+          setIsModalOpen(true);
+        }}
+        className="fixed bottom-10 right-10 bg-vibrant-yellow text-vibrant-dark border-[4px] border-vibrant-dark p-5 rounded-[2.5rem] shadow-[10px_10px_0_#2D3436] hover:translate-x-[-4px] hover:translate-y-[-4px] hover:shadow-[14px_14px_0_#2D3436] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all z-40 flex items-center gap-4 animate-bounce"
+      >
+        <Plus size={32} className="stroke-[3px]" />
+        <span className="font-black text-lg uppercase italic pr-4">Klik Isi Kegiatan</span>
+      </button>
 
       {/* Footer / Pengingat Bar */}
       <footer className="mt-auto bg-vibrant-dark text-white px-6 py-4 flex items-center gap-6 border-t-[4px] border-vibrant-yellow">

@@ -52,13 +52,11 @@ export const activityService = {
   },
 
   addActivity: async (activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt' | 'ownerId'>) => {
-    if (!auth.currentUser) throw new Error('User must be authenticated');
-    
     const path = COLLECTION_NAME;
     try {
       await addDoc(collection(db, path), {
         ...activity,
-        ownerId: auth.currentUser.uid,
+        ownerId: auth.currentUser?.uid || 'guest',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

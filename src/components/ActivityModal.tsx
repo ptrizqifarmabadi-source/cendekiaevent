@@ -73,9 +73,11 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
     setCustomCategory('');
   }, [activity]);
 
+  const canEdit = !activity || activity.ownerId === 'guest' || (user && activity.ownerId === user.uid);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!canEdit) return;
 
     const submission = {
       ...formData,
@@ -95,6 +97,7 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
 
   const handleDelete = async () => {
     if (!activity?.id) return;
+    if (!canEdit) return;
     setIsDeleting(true);
     await activityService.deleteActivity(activity.id);
     setIsDeleting(false);
@@ -146,10 +149,11 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
               <input 
                 required
                 type="text" 
+                disabled={!canEdit}
                 value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
                 placeholder="Contoh: Lomba Catur Nasional"
-                className="w-full brutalist-input !py-4 font-black text-lg placeholder:text-vibrant-dark/20"
+                className="w-full brutalist-input !py-4 font-black text-lg placeholder:text-vibrant-dark/20 disabled:opacity-75 disabled:cursor-not-allowed"
               />
             </div>
 
@@ -161,9 +165,10 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                   <input 
                     required
                     type="datetime-local" 
+                    disabled={!canEdit}
                     value={formData.date}
                     onChange={e => setFormData({...formData, date: e.target.value})}
-                    className="w-full brutalist-input pl-12 !py-4 font-black"
+                    className="w-full brutalist-input pl-12 !py-4 font-black disabled:opacity-75 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -174,9 +179,10 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                   <input 
                     required
                     type="datetime-local" 
+                    disabled={!canEdit}
                     value={formData.endDate}
                     onChange={e => setFormData({...formData, endDate: e.target.value})}
-                    className="w-full brutalist-input pl-12 !py-4 font-black"
+                    className="w-full brutalist-input pl-12 !py-4 font-black disabled:opacity-75 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -189,9 +195,10 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                   <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-vibrant-dark" size={18} />
                   <select
                     required
+                    disabled={!canEdit}
                     value={formData.division}
                     onChange={e => setFormData({...formData, division: e.target.value as Division})}
-                    className="w-full brutalist-input pl-12 !py-4 font-black appearance-none bg-white"
+                    className="w-full brutalist-input pl-12 !py-4 font-black appearance-none bg-white disabled:opacity-75 disabled:cursor-not-allowed"
                   >
                     {DIVISIONS.map(div => (
                       <option key={div} value={div}>{div}</option>
@@ -206,10 +213,11 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                   <input 
                     required
                     type="text" 
+                    disabled={!canEdit}
                     value={formData.pic}
                     onChange={e => setFormData({...formData, pic: e.target.value})}
                     placeholder="Nama PIC"
-                    className="w-full brutalist-input pl-12 !py-4 font-black"
+                    className="w-full brutalist-input pl-12 !py-4 font-black disabled:opacity-75 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -222,11 +230,12 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                   <button
                     key={cat}
                     type="button"
-                    onClick={() => toggleCategory(cat)}
-                    className={`px-4 py-3 rounded-xl text-[10px] font-black transition-all border-[3px] border-vibrant-dark shadow-[3px_3px_0_#2D3436] ${
+                    disabled={!canEdit}
+                    onClick={() => canEdit && toggleCategory(cat)}
+                    className={`px-4 py-3 rounded-xl text-[10px] font-black transition-all border-[3px] border-vibrant-dark shadow-[3px_3px_0_#2D3436] disabled:opacity-75 ${
                       formData.categories.includes(cat) 
-                        ? 'bg-vibrant-red text-white -translate-y-1 shadow-[5px_5px_0_#2D3436]' 
-                        : 'bg-white text-vibrant-dark/40 hover:text-vibrant-dark'
+                        ? 'bg-vibrant-red text-white -translate-y-1 shadow-[5px_5px_0_#2D3436] disabled:shadow-[3px_3px_0_#2D3436] disabled:translate-y-0' 
+                        : 'bg-white text-vibrant-dark/40 hover:text-vibrant-dark disabled:hover:text-vibrant-dark/40'
                     }`}
                   >
                     {cat}
@@ -238,31 +247,34 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                   <button
                     key={cat}
                     type="button"
-                    onClick={() => toggleCategory(cat)}
-                    className="px-4 py-3 rounded-xl text-[10px] font-black transition-all border-[3px] border-vibrant-dark shadow-[5px_5px_0_#2D3436] bg-vibrant-teal text-white -translate-y-1"
+                    disabled={!canEdit}
+                    onClick={() => canEdit && toggleCategory(cat)}
+                    className="px-4 py-3 rounded-xl text-[10px] font-black transition-all border-[3px] border-vibrant-dark shadow-[5px_5px_0_#2D3436] bg-vibrant-teal text-white -translate-y-1 disabled:shadow-[3px_3px_0_#2D3436] disabled:translate-y-0 disabled:opacity-75"
                   >
                     {cat}
                   </button>
                 ))}
               </div>
 
-              <div className="flex gap-2 mt-4">
-                <input 
-                  type="text"
-                  value={customCategory}
-                  onChange={e => setCustomCategory(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomCategory())}
-                  placeholder="Tambah kategori lainnya..."
-                  className="flex-1 brutalist-input !py-3 !text-xs font-black placeholder:text-vibrant-dark/20"
-                />
-                <button
-                  type="button"
-                  onClick={addCustomCategory}
-                  className="p-3 bg-vibrant-teal text-white border-[3px] border-vibrant-dark rounded-xl shadow-[4px_4px_0_#2D3436] font-black text-[10px]"
-                >
-                  TAMBAH
-                </button>
-              </div>
+              {canEdit && (
+                <div className="flex gap-2 mt-4">
+                  <input 
+                    type="text"
+                    value={customCategory}
+                    onChange={e => setCustomCategory(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomCategory())}
+                    placeholder="Tambah kategori lainnya..."
+                    className="flex-1 brutalist-input !py-3 !text-xs font-black placeholder:text-vibrant-dark/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomCategory}
+                    className="p-3 bg-vibrant-teal text-white border-[3px] border-vibrant-dark rounded-xl shadow-[4px_4px_0_#2D3436] font-black text-[10px]"
+                  >
+                    TAMBAH
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-6">
@@ -271,32 +283,35 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                   <div className="grid grid-cols-2 gap-2 p-1.5 bg-vibrant-dark rounded-xl border-[3px] border-vibrant-dark">
                     <button
                       type="button"
-                      onClick={() => setFormData({...formData, type: 'internal'})}
-                      className={`py-2 text-[10px] font-black rounded-lg transition-all ${formData.type === 'internal' ? 'bg-vibrant-teal text-white' : 'text-white/40'}`}
+                      disabled={!canEdit}
+                      onClick={() => canEdit && setFormData({...formData, type: 'internal'})}
+                      className={`py-2 text-[10px] font-black rounded-lg transition-all ${formData.type === 'internal' ? 'bg-vibrant-teal text-white' : 'text-white/40'} disabled:cursor-not-allowed`}
                     >
                       INTERNAL
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({...formData, type: 'external'})}
-                      className={`py-2 text-[10px] font-black rounded-lg transition-all ${formData.type === 'external' ? 'bg-vibrant-yellow text-vibrant-dark' : 'text-white/40'}`}
+                      disabled={!canEdit}
+                      onClick={() => canEdit && setFormData({...formData, type: 'external'})}
+                      className={`py-2 text-[10px] font-black rounded-lg transition-all ${formData.type === 'external' ? 'bg-vibrant-yellow text-vibrant-dark' : 'text-white/40'} disabled:cursor-not-allowed`}
                     >
                       EKSTERNAL
                     </button>
                   </div>
                </div>
                <div>
-                 <label className="text-[10px] font-black text-vibrant-red uppercase tracking-widest block mb-2">★ Jumlah Peserta</label>
-                 <div className="relative">
-                   <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-vibrant-dark" size={18} />
-                   <input 
-                     type="number" 
-                     value={formData.participantCount}
-                     onChange={e => setFormData({...formData, participantCount: Number(e.target.value)})}
-                     placeholder="0"
-                     className="w-full brutalist-input pl-12 !py-4 font-black"
-                   />
-                 </div>
+                  <label className="text-[10px] font-black text-vibrant-red uppercase tracking-widest block mb-2">★ Jumlah Peserta</label>
+                  <div className="relative">
+                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-vibrant-dark" size={18} />
+                    <input 
+                      type="number" 
+                      disabled={!canEdit}
+                      value={formData.participantCount}
+                      onChange={e => setFormData({...formData, participantCount: Number(e.target.value)})}
+                      placeholder="0"
+                      className="w-full brutalist-input pl-12 !py-4 font-black disabled:opacity-75 disabled:cursor-not-allowed"
+                    />
+                  </div>
                </div>
             </div>
 
@@ -306,10 +321,11 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-vibrant-dark font-black text-sm">Rp</span>
                 <input 
                   type="number" 
+                  disabled={!canEdit}
                   value={formData.budget}
                   onChange={e => setFormData({...formData, budget: Number(e.target.value)})}
                   placeholder="0"
-                  className="w-full brutalist-input pl-12 !py-4 font-black"
+                  className="w-full brutalist-input pl-12 !py-4 font-black disabled:opacity-75 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -320,10 +336,11 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
                 <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-vibrant-dark" size={18} />
                 <input 
                   type="text" 
+                  disabled={!canEdit}
                   value={formData.participantOrigin}
                   onChange={e => setFormData({...formData, participantOrigin: e.target.value})}
                   placeholder="Contoh: Siswa Kelas IX, Alumni, Guru"
-                  className="w-full brutalist-input pl-12 !py-4 font-black"
+                  className="w-full brutalist-input pl-12 !py-4 font-black disabled:opacity-75 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -331,7 +348,7 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
         </form>
 
         <footer className="p-8 bg-white border-t-[4px] border-vibrant-dark flex items-center justify-between gap-4">
-          {activity?.id ? (
+          {activity?.id && canEdit ? (
              <button
               type="button"
               onClick={handleDelete}
@@ -348,14 +365,16 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
               onClick={onClose}
               className="px-6 py-4 text-[10px] font-black text-vibrant-dark/40 hover:text-vibrant-dark uppercase tracking-widest"
             >
-              Batal
+              {canEdit ? 'Batal' : 'Tutup'}
             </button>
-            <button
-              onClick={handleSubmit}
-              className="brutalist-button px-10 italic uppercase tracking-tighter !text-lg"
-            >
-              SIMPAN KEGIATAN
-            </button>
+            {canEdit && (
+              <button
+                onClick={handleSubmit}
+                className="brutalist-button px-10 italic uppercase tracking-tighter !text-lg"
+              >
+                SIMPAN KEGIATAN
+              </button>
+            )}
           </div>
         </footer>
       </motion.div>
