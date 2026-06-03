@@ -84,7 +84,11 @@ export default function App() {
     };
   }, []);
 
-  const filteredActivities = activities.filter(activity => 
+  const visibleActivities = activities.filter(activity => 
+    user !== null || activity.status === undefined || activity.status === 'approved'
+  );
+
+  const filteredActivities = visibleActivities.filter(activity => 
     activity.categories.some(cat => selectedCategories.includes(cat)) &&
     selectedDivisions.includes(activity.division || 'Akademik')
   );
@@ -282,6 +286,85 @@ export default function App() {
 
         {/* Content */}
         <div className="lg:col-span-9">
+          {/* Admin Pending Approvals Quick Panel */}
+          {user && activities.filter(a => a.status === 'pending').length > 0 && (
+            <div className="mb-8 p-6 bg-white border-[4px] border-vibrant-dark rounded-3xl shadow-[8px_8px_0_#FFE66D] relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 bg-vibrant-yellow font-black text-[10px] border-l-[3px] border-b-[3px] border-vibrant-dark uppercase tracking-widest rounded-bl-xl shadow-none">
+                 Panel Admin
+              </div>
+              <h3 className="text-xl font-black text-vibrant-dark uppercase tracking-tighter mb-4 flex items-center gap-2">
+                <span className="w-3 h-3 bg-[#f39c12] rounded-full animate-pulse" />
+                Saran Kegiatan Baru ({activities.filter(a => a.status === 'pending').length})
+              </h3>
+              <p className="text-xs font-black text-vibrant-dark/60 uppercase mb-6 italic">
+                Saran kegiatan di bawah diisi oleh pengguna umum (guest) dan belum dimasukkan ke kalender sekolah.
+              </p>
+              
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {activities.filter(a => a.status === 'pending').map(activity => {
+                  const start = activity.date?.toDate ? activity.date.toDate() : new Date(activity.date);
+                  return (
+                    <div 
+                      key={activity.id}
+                      className="p-5 bg-vibrant-bg border-[3px] border-vibrant-dark rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[4px_4px_0_#2D3436] hover:translate-x-1 transition-all"
+                    >
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span className="text-[10px] font-black text-vibrant-red uppercase italic">
+                            {format(start, 'dd MMM yyyy, HH:mm')}
+                          </span>
+                          <span className="px-2 py-0.5 border border-vibrant-dark rounded bg-vibrant-teal text-white text-[8px] font-black uppercase">
+                            {activity.division}
+                          </span>
+                        </div>
+                        <h4 className="text-base font-black text-vibrant-dark uppercase tracking-tight">
+                          {activity.name}
+                        </h4>
+                        <p className="text-xs text-vibrant-dark/60 font-semibold mt-1">
+                          PJ: <b className="font-black text-vibrant-dark">{activity.pic}</b> | 
+                          Asal: <b className="font-black text-vibrant-dark">{activity.participantOrigin}</b> | 
+                          Peserta: <b className="font-black text-vibrant-dark">{activity.participantCount}</b> | 
+                          Anggaran: <b className="font-black text-vibrant-dark">{formatIDR(activity.budget)}</b>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setSelectedActivity(activity);
+                            setIsModalOpen(true);
+                          }}
+                          className="px-4 py-2 relative z-10 bg-white border-[2.5px] border-vibrant-dark text-[10px] font-black uppercase rounded-xl shadow-[2.5px_2.5px_0_#2D3436] hover:translate-y-[-1px] transition-all"
+                        >
+                          Detail
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (activity.id) {
+                              await activityService.updateActivity(activity.id, { status: 'approved' });
+                            }
+                          }}
+                          className="px-4 py-2 relative z-10 bg-[#2ecc71] text-white border-[2.5px] border-vibrant-dark text-[10px] font-black uppercase rounded-xl shadow-[2.5px_2.5px_0_#2D3436] hover:translate-y-[-1px] transition-all"
+                        >
+                          Setuju
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (activity.id) {
+                              await activityService.updateActivity(activity.id, { status: 'rejected' });
+                            }
+                          }}
+                          className="px-4 py-2 relative z-10 bg-[#e74c3c] text-white border-[2.5px] border-vibrant-dark text-[10px] font-black uppercase rounded-xl shadow-[2.5px_2.5px_0_#2D3436] hover:translate-y-[-1px] transition-all"
+                        >
+                          Tolak
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Controls */}
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6">
             <div className="flex flex-col gap-2">
@@ -367,12 +450,21 @@ export default function App() {
                               setIsModalOpen(true);
                             }}
                             className={`w-full text-left p-2 rounded-lg text-[9px] font-black truncate transition-all hover:translate-x-1 border-[2px] border-vibrant-dark shadow-[2px_2px_0_#2D3436] active:translate-x-0 active:translate-y-0 active:shadow-none flex items-center justify-between gap-1 ${
-                              activity.type === 'internal' 
+                              activity.status === 'pending'
+                                ? 'bg-[#f39c12] text-white'
+                                : activity.status === 'rejected'
+                                ? 'bg-[#e74c3c] text-white opacity-60'
+                                : activity.type === 'internal' 
                                 ? 'bg-vibrant-teal text-white' 
                                 : 'bg-vibrant-yellow text-vibrant-dark'
                             }`}
                           >
-                            {activity.name}
+                            <span className="truncate">{activity.name}</span>
+                            {activity.status && activity.status !== 'approved' && (
+                              <span className="text-[7px] shrink-0 font-black px-1.5 py-0.5 rounded border border-white uppercase bg-white/20">
+                                {activity.status === 'pending' ? '⌛ PND' : '✖ REJ'}
+                              </span>
+                            )}
                           </button>
                         ))}
                       </div>

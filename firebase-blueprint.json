@@ -20,6 +20,7 @@
         },
         "budget": { "type": "number", "description": "Budget in Rupiah" },
         "ownerId": { "type": "string", "description": "UID of the user who created this" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"], "description": "Workflow approval state" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

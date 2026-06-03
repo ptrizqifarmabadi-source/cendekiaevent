@@ -39,6 +39,7 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
 
   const [customCategory, setCustomCategory] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     if (activity) {
@@ -101,6 +102,14 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
     setIsDeleting(true);
     await activityService.deleteActivity(activity.id);
     setIsDeleting(false);
+    onClose();
+  };
+
+  const handleStatusChange = async (newStatus: 'approved' | 'rejected') => {
+    if (!activity?.id) return;
+    setIsUpdatingStatus(true);
+    await activityService.updateActivity(activity.id, { status: newStatus });
+    setIsUpdatingStatus(false);
     onClose();
   };
 
@@ -347,19 +356,47 @@ export default function ActivityModal({ isOpen, onClose, activity, user }: Activ
           </div>
         </form>
 
-        <footer className="p-8 bg-white border-t-[4px] border-vibrant-dark flex items-center justify-between gap-4">
-          {activity?.id && canEdit ? (
-             <button
-              type="button"
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="px-6 py-4 bg-white text-vibrant-red border-[3px] border-vibrant-dark rounded-xl font-black shadow-[4px_4px_0_#FF6B6B] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
-            >
-              <Trash2 size={24} />
-            </button>
-          ) : <div />}
+        <footer className="p-8 bg-white border-t-[4px] border-vibrant-dark flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {activity?.id && canEdit && (
+               <button
+                type="button"
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="px-6 py-4 bg-white text-vibrant-red border-[3px] border-vibrant-dark rounded-xl font-black shadow-[4px_4px_0_#FF6B6B] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                title="Hapus Kegiatan"
+              >
+                <Trash2 size={24} />
+              </button>
+            )}
+
+            {user && activity?.id && (
+              <div className="flex gap-2">
+                {activity.status !== 'approved' && (
+                  <button
+                    type="button"
+                    disabled={isUpdatingStatus}
+                    onClick={() => handleStatusChange('approved')}
+                    className="px-4 py-3 bg-[#2ecc71] text-white border-[3px] border-vibrant-dark rounded-xl font-black text-xs uppercase tracking-wider shadow-[3px_3px_0_#2D3436] hover:translate-y-[-2px] transition-all"
+                  >
+                    SETUJU
+                  </button>
+                )}
+                {activity.status !== 'rejected' && (
+                  <button
+                    type="button"
+                    disabled={isUpdatingStatus}
+                    onClick={() => handleStatusChange('rejected')}
+                    className="px-4 py-3 bg-[#e74c3c] text-white border-[3px] border-vibrant-dark rounded-xl font-black text-xs uppercase tracking-wider shadow-[3px_3px_0_#2D3436] hover:translate-y-[-2px] transition-all"
+                  >
+                    TOLAK
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           
-          <div className="flex gap-4">
+          <div className="flex gap-4 ml-auto">
             <button
               type="button"
               onClick={onClose}

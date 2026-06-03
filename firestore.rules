@@ -38,9 +38,10 @@ service cloud.firestore {
           && data.participantOrigin is string && data.participantOrigin.size() <= 200
           && data.categories is list && data.categories.size() >= 1 && data.categories.size() <= 15
           && data.budget is number && data.budget >= 0
+          && data.status in ['pending', 'approved', 'rejected']
           && (data.ownerId == "guest" || (request.auth != null && data.ownerId == request.auth.uid))
-          && data.keys().hasAll(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'ownerId', 'createdAt', 'updatedAt'])
-          && data.keys().size() == 13;
+          && data.keys().hasAll(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'ownerId', 'status', 'createdAt', 'updatedAt'])
+          && data.keys().size() == 14;
     }
 
     // 4. Activity Collection
@@ -51,21 +52,21 @@ service cloud.firestore {
 
       allow create: if isValidId(activityId)
           && isValidActivity(incoming())
-          && (request.auth != null || incoming().ownerId == "guest")
+          && (request.auth != null || (incoming().ownerId == "guest" && incoming().status == "pending"))
           && incoming().createdAt == request.time
           && incoming().updatedAt == request.time;
 
-      allow update: if (existing().ownerId == "guest" || isOwner(existing()))
+      allow update: if (request.auth != null || (existing().ownerId == "guest" && existing().status == "pending"))
           && isValidActivity(incoming())
           && incoming().ownerId == existing().ownerId
           && incoming().createdAt == existing().createdAt
           && incoming().updatedAt == request.time
           && (
-            // Partitioned Perms: Owners can change any non-immutable fields
-            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'updatedAt'])
+            // Partitioned Perms: Owners/Admins can change any non-immutable fields
+            incoming().diff(existing()).affectedKeys().hasOnly(['name', 'date', 'endDate', 'division', 'pic', 'type', 'participantCount', 'participantOrigin', 'categories', 'budget', 'status', 'updatedAt'])
           );
 
-      allow delete: if existing().ownerId == "guest" || isOwner(existing());
+      allow delete: if request.auth != null || (existing().ownerId == "guest" && existing().status == "pending");
     }
   }
 }

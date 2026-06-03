@@ -51,11 +51,13 @@ export const activityService = {
     });
   },
 
-  addActivity: async (activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt' | 'ownerId'>) => {
+  addActivity: async (activity: Omit<Activity, 'id' | 'createdAt' | 'updatedAt' | 'ownerId' | 'status'>) => {
     const path = COLLECTION_NAME;
+    const isGuest = !auth.currentUser;
     try {
       await addDoc(collection(db, path), {
         ...activity,
+        status: isGuest ? 'pending' : 'approved',
         ownerId: auth.currentUser?.uid || 'guest',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),

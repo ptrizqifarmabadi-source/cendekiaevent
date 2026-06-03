@@ -36,13 +36,22 @@ export default function ActivityList({ activities, onSelect }: ActivityListProps
           >
              <div className="flex flex-col h-full relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <span className={`brutalist-tag ${activity.type === 'internal' ? 'bg-vibrant-yellow text-vibrant-dark' : 'bg-vibrant-red text-white'}`}>
                       {activity.type}
                     </span>
                     <span className="bg-vibrant-teal text-white brutalist-tag">
                       {activity.division || 'Akademik'}
                     </span>
+                    {activity.status && activity.status !== 'approved' && (
+                      <span className={`brutalist-tag ${
+                        activity.status === 'pending' 
+                          ? 'bg-[#f39c12] text-white animate-pulse' 
+                          : 'bg-[#e74c3c] text-white'
+                      }`}>
+                        {activity.status === 'pending' ? 'MENUNGGU DISETUJUI' : 'DITOLAK'}
+                      </span>
+                    )}
                   </div>
                   <span className="text-sm font-black text-vibrant-red uppercase italic">
                     {isMultiDay 

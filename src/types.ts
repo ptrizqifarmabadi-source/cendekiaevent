@@ -26,6 +26,7 @@ export interface Activity {
   categories: Category[];
   budget: number;
   ownerId: string;
+  status: 'pending' | 'approved' | 'rejected';
   createdAt: any;
   updatedAt: any;
 }
